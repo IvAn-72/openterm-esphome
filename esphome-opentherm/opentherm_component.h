@@ -27,6 +27,7 @@ public:
 //  Sensor *pressure_sensor = new Sensor();
   Sensor *modulation_sensor = new Sensor();
   Sensor *heating_target_temperature_sensor = new Sensor();
+  Sensor *heater_fault_code = new Sensor();
   OpenthermClimate *hotWaterClimate = new OpenthermClimate();
   OpenthermClimate *heatingWaterClimate = new OpenthermClimate();
   BinarySensor *flame = new OpenthermBinarySensor();
@@ -145,6 +146,7 @@ public:
 
     // Publish sensor values
     flame->publish_state(isFlameOn); 
+    heater_fault_code->publish_state(fault_code);
 //    external_temperature_sensor->publish_state(ext_temperature);
 //    return_temperature_sensor->publish_state(return_temperature);
     boiler_temperature->publish_state(boilerTemperature);

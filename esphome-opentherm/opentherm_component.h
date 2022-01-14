@@ -108,6 +108,7 @@ public:
     bool isFlameOn = ot.isFlameOn(response);
     bool isCentralHeatingActive = ot.isCentralHeatingActive(response);
     bool isHotWaterActive = ot.isHotWaterActive(response);
+    bool isFault = ot.isFault(response);
 //    float return_temperature = getReturnTemperature();
     float hotWater_temperature = getHotWaterTemperature();
 
@@ -143,6 +144,21 @@ public:
 //    float ext_temperature = getExternalTemperature();
 //    float pressure = getPressure();
     float modulation = getModulation();
+
+    // Read errors
+    auto request = ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::ASFflags, 0x0000);
+    response = ot.sendRequest(request);
+    uint8_t flags = (response & 0xFFFF) >> 8;
+    bool service_req = (flags & 0x01) ? true : false;
+    bool low_water_pressure = (flags & 0x04) ? true : false;
+    bool gas_fault = (flags & 0x08) ? true : false;
+    bool air_fault = (flags & 0x10) ? true : false;
+    bool water_overtemp = (flags & 0x20) ? true : false;
+    uint16_t fault_code = response & 0xFF;
+    if (isFault) {
+      ESP_LOGD("opentherm_component", "Boiler Fault: %d", fault_code);
+    }
+
 
     // Publish sensor values
     flame->publish_state(isFlameOn); 

@@ -3,6 +3,8 @@
 This is an example of a integration with a OpenTherm boiler using ESPHome and the Ihor Melnyk or DIYLESS OpenTherm Adapter
 Based on rsciriano. Fon Bosch Gaz 6000 WBN 24H
 
+Add Error code.
+
 Installation
 Copy the content of this repository to your ESPHome folder
 Make sure the pin numbers are right, check the file opentherm_component.h in the esphome-opentherm folder.

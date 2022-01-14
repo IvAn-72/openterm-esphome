@@ -69,6 +69,7 @@ sensor:
         openthermComp->boiler_temperature, 
         openthermComp->modulation_sensor,
         openthermComp->heating_target_temperature_sensor
+        openthermComp->heater_fault_code
       };
     sensors:
     - name: Boiler Temperature
@@ -80,6 +81,9 @@ sensor:
     - name: "Heating Target Temperature"
       unit_of_measurement: ºC
       accuracy_decimals: 1
+    - name: opentherm_fault_code
+      icon: mdi:alert-circle-outline
+      accuracy_decimals: 0
       
   - platform: homeassistant
     name: "External Temperature"

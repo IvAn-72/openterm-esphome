@@ -60,7 +60,7 @@ output:
 sensor:
   - platform: dallas
     name: "temperature_kot"
-    address: "0x073C01D607EA1628"
+    address: "0xXXXXXXXXXXXXXXXX"
 
   - platform: custom
     lambda: |-    

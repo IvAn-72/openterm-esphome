@@ -16,7 +16,7 @@ Change address for you dallas temperature sensor
 sensor:
   - platform: dallas
     name: "temperature_kot"
-    address: "0x073C01D607EA1628"
+    address: "0xXXXXXXXXXXXXXXXX"
 
 Flash the ESP and configure in Home Assistant. It should be auto-discovered by the ESPHome Integration.
 

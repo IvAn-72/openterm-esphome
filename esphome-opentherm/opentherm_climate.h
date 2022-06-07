@@ -50,7 +50,7 @@ public:
 
         traits.set_visual_min_temperature(5);
         traits.set_visual_max_temperature(80);
-        traits.set_visual_temperature_step(0.1);
+        traits.set_visual_temperature_step(1);
 
         return traits;    
     }

@@ -6,12 +6,9 @@ esphome:
   name: opentherm
   platform: ESP8266
   board: d1_mini
-#  arduino_version: '2.7.2' 
-  platformio_options:
-    lib_deps: 
+#  platformio_options:
+#    lib_deps: 
 #    - ihormelnyk/OpenTherm Library @ 1.1.3
-    - ESP8266WiFi
-    - ESP Async WebServer
   includes:
     - esphome-opentherm/
 
@@ -26,15 +23,9 @@ captive_portal:
 logger:
 api:
 ota:
+#web_server:
+#  port: 80
 
-web_server:
-  port: 80
-
-#D5 - это пин к которому подключен датчик. update_interval: задается в секундах. Время через которое будет опрашиваться датчик.
-dallas:
-  pin: D5
-  update_interval: 60s
-  
 
 custom_component:
   - lambda: |-
@@ -54,13 +45,15 @@ output:
       return {opentherm_pid_output};
     outputs:
       id: pid_output
-      #min_power: 30.00%
-      #max_power: 90.00%
+
+dallas:
+  pin: D5
+  update_interval: 60s
 
 sensor:
   - platform: dallas
     name: "temperature_kot"
-    address: "0xXXXXXXXXXXXXXXXX"
+    index: 0
 
   - platform: custom
     lambda: |-    
@@ -69,42 +62,41 @@ sensor:
         openthermComp->boiler_temperature, 
         openthermComp->modulation_sensor,
         openthermComp->heating_target_temperature_sensor
-        openthermComp->heater_fault_code
       };
     sensors:
     - name: Boiler Temperature
       unit_of_measurement: °C
+      device_class: temperature
       accuracy_decimals: 1
+      icon: "mdi:water-boiler"
     - name: "Boiler Modulation"
       unit_of_measurement: "%"
       accuracy_decimals: 0
+      icon: "mdi:chart-bell-curve-cumulative"
     - name: "Heating Target Temperature"
-      unit_of_measurement: ºC
+      unit_of_measurement: °C
+      device_class: temperature
       accuracy_decimals: 1
-    - name: opentherm_fault_code
-      icon: mdi:alert-circle-outline
-      accuracy_decimals: 0
+      icon: "mdi:thermostat"
       
   - platform: homeassistant
-    name: "External Temperature"
-    entity_id: sensor.openweathermap_temperature
-    unit_of_measurement: °C
-    accuracy_decimals: 1  
-  - platform: homeassistant
     id: temperature_sensor
-    entity_id: sensor.temp_k2
-#    entity_id: sensor.temp1_temperature
+    entity_id: sensor.living_room_temperature
     name: "Actual temperature"
     unit_of_measurement: °C
+    device_class: temperature
   - platform: pid
     name: "PID Climate Result"
     type: RESULT    
+    icon: "mdi:vector-curve"
   - platform: pid
     name: "PID Climate HEAT"
     type: HEAT    
+    icon: "mdi:vector-curve"
   - platform: pid
     name: "PID Climate ERROR"
     type: ERROR    
+    icon: "mdi:vector-curve"
 
 binary_sensor:
   - platform: custom
@@ -113,8 +105,8 @@ binary_sensor:
       return {openthermComp->flame};
     binary_sensors:
     - name: "Flame"
-      #device_class: heat
-
+      icon: "mdi:fire"
+      
 switch:
   - platform: custom
     lambda: |-
@@ -138,21 +130,17 @@ climate:
     climates:
       - id: hot_water
         name: "Hot water"
-#        visual:
-#          temperature_step: 0.5 °C
       - id: heating_water
         name: "Heating water"
-#        visual:
-#          temperature_step: 0.5 °C
   - platform: pid
     id: pid_climate
     name: "PID Climate Controller"
     visual:
       min_temperature: 10 °C
-      max_temperature: 30 °C
-      temperature_step: 0.1 °C
+      max_temperature: 28 °C
+      temperature_step: 0.5 °C
     sensor: temperature_sensor
-    default_target_temperature: 24°C
+    default_target_temperature: 23°C
     heat_output: pid_output
     control_parameters:
       kp: 0.38197

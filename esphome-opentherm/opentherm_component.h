@@ -21,19 +21,15 @@ private:
   OpenthermFloatOutput *pid_output_; 
 public:
   Switch *thermostatSwitch = new OpenthermSwitch();
-//  Sensor *external_temperature_sensor = new Sensor();
-//  Sensor *return_temperature_sensor = new Sensor();
   Sensor *boiler_temperature = new Sensor();
-//  Sensor *pressure_sensor = new Sensor();
   Sensor *modulation_sensor = new Sensor();
   Sensor *heating_target_temperature_sensor = new Sensor();
-  Sensor *heater_fault_code = new Sensor();
   OpenthermClimate *hotWaterClimate = new OpenthermClimate();
   OpenthermClimate *heatingWaterClimate = new OpenthermClimate();
   BinarySensor *flame = new OpenthermBinarySensor();
   
-  // Set 3 sec. to give time to read all sensors (and not appear in HA as not available)
-  OpenthermComponent(): PollingComponent(3000) {
+  // Set 5 sec. to give time to read all sensors (and not appear in HA as not available)
+  OpenthermComponent(): PollingComponent(5000) {
   }
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
@@ -54,23 +50,12 @@ public:
       // heatingWaterClimate->set_supports_heat_cool_mode(this->pid_output_ != nullptr);
       heatingWaterClimate->set_supports_two_point_target_temperature(this->pid_output_ != nullptr);
 
-//      hotWaterClimate->set_temperature_settings(5, 6, 0);
-//      heatingWaterClimate->set_temperature_settings(0, 0, 30);
-      hotWaterClimate->set_temperature_settings(20, 60, 50);
-      heatingWaterClimate->set_temperature_settings(0, 0, 24);
+      hotWaterClimate->set_temperature_settings(5, 6, 5);
+      heatingWaterClimate->set_temperature_settings(20, 25, 22);
       hotWaterClimate->setup();
       heatingWaterClimate->setup();
   }
-//  float getExternalTemperature() {
-//      unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
-//      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
-//  }
 
-//  float getReturnTemperature() {
-//      unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
-//      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
-//  }
-  
   float getHotWaterTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tdhw, 0));
       return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
@@ -88,11 +73,6 @@ public:
     return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
   }
 
-//  float getPressure() {
-//    unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::CHPressure, 0));
-//    return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
-//  }
-
   void update() override {
 
     ESP_LOGD("opentherm_component", "update heatingWaterClimate: %i", heatingWaterClimate->mode);
@@ -108,10 +88,7 @@ public:
     bool isFlameOn = ot.isFlameOn(response);
     bool isCentralHeatingActive = ot.isCentralHeatingActive(response);
     bool isHotWaterActive = ot.isHotWaterActive(response);
-    bool isFault = ot.isFault(response);
-//    float return_temperature = getReturnTemperature();
     float hotWater_temperature = getHotWaterTemperature();
-
 
     // Set temperature depending on room thermostat
     float heating_target_temperature;
@@ -141,32 +118,11 @@ public:
     setHotWaterTemperature(hotWaterClimate->target_temperature);
 
     float boilerTemperature = ot.getBoilerTemperature();
-//    float ext_temperature = getExternalTemperature();
-//    float pressure = getPressure();
     float modulation = getModulation();
-
-    // Read errors
-    auto request = ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::ASFflags, 0x0000);
-    response = ot.sendRequest(request);
-    uint8_t flags = (response & 0xFFFF) >> 8;
-    bool service_req = (flags & 0x01) ? true : false;
-    bool low_water_pressure = (flags & 0x04) ? true : false;
-    bool gas_fault = (flags & 0x08) ? true : false;
-    bool air_fault = (flags & 0x10) ? true : false;
-    bool water_overtemp = (flags & 0x20) ? true : false;
-    uint16_t fault_code = response & 0xFF;
-    if (isFault) {
-      ESP_LOGD("opentherm_component", "Boiler Fault: %d", fault_code);
-    }
-
 
     // Publish sensor values
     flame->publish_state(isFlameOn); 
-    heater_fault_code->publish_state(fault_code);
-//    external_temperature_sensor->publish_state(ext_temperature);
-//    return_temperature_sensor->publish_state(return_temperature);
     boiler_temperature->publish_state(boilerTemperature);
-//    pressure_sensor->publish_state(pressure);
     modulation_sensor->publish_state(modulation);
     
     heating_target_temperature_sensor->publish_state(heating_target_temperature);
